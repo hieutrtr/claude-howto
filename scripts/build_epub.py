@@ -113,6 +113,8 @@ class EPUBConfig:
     vi_subtitle: str = "Làm chủ Claude Code trong một cuối tuần"
     en_title: str = "Claude Code How-To Guide"
     en_subtitle: str = "Master Claude Code in a Weekend"
+    zh_title: str = "Claude Code 使用指南"
+    zh_subtitle: str = "一个周末掌握 Claude Code"
 
     # Cover Settings
     cover_width: int = 600
@@ -1057,8 +1059,11 @@ def main() -> int:
         "--lang",
         type=str,
         default="en",
-        choices=["en", "vi"],
-        help="Language code: 'en' for English, 'vi' for Vietnamese (default: en)",
+        choices=["en", "vi", "zh"],
+        help=(
+            "Language code: 'en' for English, 'vi' for Vietnamese, "
+            "'zh' for Chinese (default: en)"
+        ),
     )
     parser.add_argument(
         "--puppeteer-config",
@@ -1073,17 +1078,16 @@ def main() -> int:
     repo_root = args.root if args.root else Path(__file__).parent.parent
     repo_root = repo_root.resolve()
 
-    # Set language-specific paths and metadata
-    if args.lang == "vi":
-        root = repo_root / "vi"
-        output = args.output or (repo_root / "claude-howto-guide-vi.epub")
-        title = EPUBConfig.vi_title
-        language = "vi"
-    else:
-        root = repo_root
-        output = args.output or (repo_root / "claude-howto-guide.epub")
-        title = EPUBConfig.en_title
-        language = "en"
+    # Set language-specific paths and metadata.
+    # Each entry: (source root, default output filename, title)
+    lang_map: dict[str, tuple[Path, str, str]] = {
+        "en": (repo_root, "claude-howto-guide.epub", EPUBConfig.en_title),
+        "vi": (repo_root / "vi", "claude-howto-guide-vi.epub", EPUBConfig.vi_title),
+        "zh": (repo_root / "zh", "claude-howto-guide-zh.epub", EPUBConfig.zh_title),
+    }
+    root, default_output_name, title = lang_map[args.lang]
+    output = args.output or (repo_root / default_output_name)
+    language = args.lang
 
     root = root.resolve()
     output = output.resolve()
